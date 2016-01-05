@@ -17,7 +17,7 @@ use Yii;
  * AmazonS3Manager handles resources to upload/uploaded to Amazon AWS
  *
  */
-class AmazonS3Manager extends Component implements ResourceManagerInterface
+class AmazonS3Manager extends Component
 {
 
     /**
@@ -65,7 +65,7 @@ class AmazonS3Manager extends Component implements ResourceManagerInterface
     }
 
     /**
-     * Saves a file
+     * Basic method to saves a file
      * @param \yii\web\UploadedFile $file the file uploaded. The [[UploadedFile::$tempName]] will be used as the source
      * file.
      * @param string $name the name of the file
@@ -82,6 +82,29 @@ class AmazonS3Manager extends Component implements ResourceManagerInterface
             'ACL' => CannedAcl::PUBLIC_READ // default to ACL public read
         ], $options);
 
+        $this->getClient()->putObject($options);
+    }
+
+
+    /**
+     * @param string $filePath path where is file.
+     * @param string $bucketPath  Dir where to save file
+     * @param string $fileName  The name with which the file will be saved on bucket
+     * @param string|null $oldFileName If isset old file that need deleted. Use if need update entity.
+     * @param array $options
+     */
+    public function uploadFile($filePath, $bucketPath, $fileName, $oldFileName = null, $options = [])
+    {
+        if ($oldFileName) {
+            $this->delete($bucketPath . $oldFileName);
+        }
+
+        $options = ArrayHelper::merge([
+            'Bucket' => $this->bucket,
+            'Key' => $bucketPath . $fileName,
+            'SourceFile' => $filePath,
+            'ACL' => CannedAcl::PUBLIC_READ // default to ACL public read
+        ], $options);
         $this->getClient()->putObject($options);
     }
 
